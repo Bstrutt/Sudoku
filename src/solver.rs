@@ -1,39 +1,43 @@
-use bit_vec::BitVec;
+use crate::checks;
+use crate::display;
 
 pub fn solve(state: &mut [[u32; 9]; 9]) ->() {
-    let dummy = BitVec::from_elem(10,true);
-    let mut poss_matrix = [[& dummy; 9]; 9];
+    solve_cell(state, 0, 0);
+}
+
+fn solve_cell(state: &mut [[u32; 9]; 9], x: usize, y: usize) -> bool{
 
     
-
-    for i in 0..9{
-        for j in 0..9{
-            let cur_num = state[i][j];
-            if cur_num != 0 {
-                fill_row(&mut poss_matrix, i, cur_num);
-                fill_col(&mut poss_matrix, j, cur_num);
-                fill_fam(&mut poss_matrix, i, j, cur_num);
+    if state[x][y]!=0 { 
+        return solve_next(state, x, y);
+    } else { // if there isnt already something in the cell
+        for i in 0..9{
+            state[x][y] = i;
+            if checks::check_legal(&state) { // check new state for legality
+                if solve_next(state, x, y) {
+                    return true;   
+                } else {
+                    continue;
+                }
+            } else {
+                continue; //if not legal try the next number
             }
         }
+        return false;
     }
 }
-
-fn fill_row(poss_matrix: &mut [[BitVec; 9]; 9], i: usize, cur_num: u32){
-    for k in 0..9{
-        poss_matrix[i][k].set(cur_num as usize, false);
-    }
-}
-fn fill_col(poss_matrix: &mut [[BitVec; 9]; 9], j: usize, cur_num: u32){
-    for k in 0..9{
-        poss_matrix[k][j].set(cur_num as usize, false);
-    }
-}
-fn fill_fam(poss_matrix: &mut [[BitVec; 9]; 9], i: usize, j: usize, cur_num: u32){
-    let k = i/3;
-    let l = j/3;
-    for x in 0..3{
-        for y in 0..3{
-            poss_matrix[k*3+x][l*3+y].set(cur_num as usize, false);
+fn solve_next(state: &mut [[u32; 9]; 9], x: usize, y: usize) -> bool{
+    if y==8{
+        if x==8{
+            return true;
+        } else {
+            return solve_cell(state, x+1, y);
         }
-    }
+    } else {
+        if x==8{
+            return solve_cell(state, 0, y+1);
+        } else {
+            return solve_cell(state, x+1, y);
+        }
+    } 
 }
